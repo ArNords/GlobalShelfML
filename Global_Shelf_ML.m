@@ -1,6 +1,6 @@
 clear
 
-data = readtable("Data.xlsx");
+data = readtable("Nordsvan_etal.xlsx");
 
  De = 1; % 1 = depth, 2 = width, 3 = PCA
 
