@@ -22,9 +22,9 @@ elseif De==3
     txt = {'PCA'};
 end
 
-numPermutations = 5; % Amount of permutations for the uncertainy estimation
-ModelIt = 5; % Number of iterations for the machine learning models.
-RI = 1; % Do random iterations rather then all 560. 0 = No, 1 = Yes
+numPermutations = 200; % Amount of permutations for the uncertainy estimation
+ModelIt = 100; % Number of iterations for the machine learning models.
+RI = 0; % Do random iterations rather then all 560. 0 = No, 1 = Yes
 if RI == 1
     RandIterations = 10; % How many iterations?
 end
