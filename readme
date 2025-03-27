@@ -1,6 +1,6 @@
-# Decoding the Drivers of Continental Shelf Morphology - MATLAB Scripts
+# Unraveling the complex drivers of continental shelf evolution using machine learning - MATLAB Scripts
 
-This repository contains the MATLAB scripts used for the machine learning analysis presented in the paper: "Unraveling the complex drivers of continental shelf evolution using machine learning" by Nordsvan et al.[cite: 1]. The analysis uses Support Vector Machine (SVM) regression to investigate the factors controlling continental shelf width, shelf-break depth, and their principal component (PC1) on 16 unglaciated passive margins.
+This repository contains the MATLAB scripts used for the machine learning analysis presented in the paper: "Unraveling the complex drivers of continental shelf evolution using machine learning" by Nordsvan et al. The analysis uses Support Vector Machine (SVM) regression to investigate the factors controlling continental shelf width, shelf-break depth, and their principal component (PC1) on 16 unglaciated passive margins.
 
 The repository includes scripts implementing three distinct data sampling strategies described in the supplementary material to ensure robustness and mitigate sampling bias:
 
@@ -8,7 +8,7 @@ The repository includes scripts implementing three distinct data sampling strate
 2.  **Randomised (`ML_Randomised.m`):** Uses a subset of 13 randomly selected normalised profiles from each margin within the cross-validation framework[cite: 110].
 3.  **Bootstrap (`ML_Bootstrap.m`):** Uses bootstrapped median values (20 replicates per margin) derived from the normalized profiles for training and testing within the cross-validation framework.
 
-**GitHub Repository:** [https://github.com/ArNords/GlobalShelfML/](https://github.com/ArNords/GlobalShelfML/blob/0f4ea1ff2e6d969e7a72c80e7482dab2054353b3/Global_Shelf_ML.m) *(Link provided in supplementary material [cite: 7])*
+**GitHub Repository:** [https://github.com/ArNords/GlobalShelfML/] 
 
 ## Dependencies
 
