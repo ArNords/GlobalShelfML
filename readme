@@ -1,0 +1,90 @@
+# Decoding the Drivers of Continental Shelf Morphology - MATLAB Scripts
+
+This repository contains the MATLAB scripts used for the machine learning analysis presented in the paper: "Unraveling the complex drivers of continental shelf evolution using machine learning" by Nordsvan et al.[cite: 1]. The analysis uses Support Vector Machine (SVM) regression to investigate the factors controlling continental shelf width, shelf-break depth, and their principal component (PC1) on 16 unglaciated passive margins.
+
+The repository includes scripts implementing three distinct data sampling strategies described in the supplementary material to ensure robustness and mitigate sampling bias:
+
+1.  **All Data (`ML_AllData.m`):** Uses all available normalized profiles (presumably 11 per margin after outlier removal [cite: 89]) for training/testing in a leave-three-out cross-validation framework.
+2.  **Randomised (`ML_Randomised.m`):** Uses a subset of 13 randomly selected normalised profiles from each margin within the cross-validation framework[cite: 110].
+3.  **Bootstrap (`ML_Bootstrap.m`):** Uses bootstrapped median values (20 replicates per margin) derived from the normalized profiles for training and testing within the cross-validation framework.
+
+**GitHub Repository:** [https://github.com/ArNords/GlobalShelfML/](https://github.com/ArNords/GlobalShelfML/blob/0f4ea1ff2e6d969e7a72c80e7482dab2054353b3/Global_Shelf_ML.m) *(Link provided in supplementary material [cite: 7])*
+
+## Dependencies
+
+* **MATLAB:** R2022b or later recommended [code was written and implemented with MATLAB R2023b].
+* **Toolboxes:**
+    * Statistics and Machine Learning Toolbox (required for `readtable`, `normalize`, `fitrsvm`, `cvpartition`, `predict`, `partialDependence`, `bootstrp`, `randperm`, `table`, etc.)
+    * Parallel Computing Toolbox (optional, used if `'UseParallel',true` is enabled in `HyperparameterOptimizationOptions` within the scripts).
+* **External Functions:**
+    * `daboxplot`: Used for creating styled box plots of prediction errors. Available from: [https://github.com/povilaskarvelis/DataViz](https://github.com/povilaskarvelis/DataViz). Ensure this function is downloaded and available on the MATLAB path. (A fallback to MATLAB's standard `boxplot` is included in the scripts).
+* **Pre-processing Tools (Not included in this repository):**
+    * The generation of the input data (`supplement.xlsx`) from raw DEMs likely requires tools mentioned in the supplementary material[cite: 7], such as `TopoToolbox2` [cite: 1] and potentially the `Topographic Analysis Kit`[cite: 2], 	along with GIS software (e.g., ArcMap).
+
+## Data
+
+* **Input Data:** The scripts expect input data in an Excel file named `supplement.xlsx` located in the same directory.
+* **File Structure:** This file should contain data compiled for the 16 margins. Based on script usage and supplementary info, it likely contains 522 rows initially, potentially reduced later or sampled from. The scripts assume the following column structure based on processing steps:
+    * Column 1: Labels/Identifiers (e.g., 'BAN01').
+    * Column 2: Shelf Break Depth data (Used if `De = 1`).
+    * Column 3: Shelf Width data (Used if `De = 2`).
+    * Column 4: PC1 data (Used if `De = 3`).
+    * Columns 5-11: Feature data corresponding *in order* to `VarNames`: 'Sediment supply', 'Wave energy', 'Tidal range', 'Age', 'Current velocity', 'Lithology', 'Sea-level'.
+* **Data Sources:** Refer to the Supplementary Materials for details on original data sources (DEMs, climate data, river data, GIA models, etc.) and the pre-processing steps used to generate `supplement.xlsx`.
+
+## Setup
+
+1.  Ensure MATLAB **[Your Version]** and the required toolboxes are installed.
+2.  Download the `daboxplot` function from the provided GitHub link and add its location to your MATLAB path. Otherwise, the scripts will use the standard `boxplot`.
+3.  Place the input data file `supplement.xlsx` in the same directory as the MATLAB scripts (`ML_AllData.m`, `ML_Randomised.m`, `ML_Bootstrap.m`).
+
+## Usage
+
+1.  **Select Script:** Choose the script corresponding to the desired sampling strategy (All Data, Randomised, or Bootstrap).
+2.  **Configure Parameters:** Open the chosen script in the MATLAB editor and set the parameters near the top:
+    * `De`: Set the target variable to predict (1 = Depth, 2 = Width, 3 = PCA).
+    * `ModelIt`: Set the number of iterations (`MaxObjectiveEvaluations`) for SVM hyperparameter optimization (e.g., 100). Higher values increase runtime.
+    * `numPermutations`: Set the number of permutations for calculating p-values (e.g., 200). Higher values significantly increase runtime.
+    * `RI`: Set to `1` to run a random subset of cross-validation folds, or `0` to run all 560 folds.
+    * `RandIterations`: If `RI = 1`, set the number of random folds to run (e.g., 10, 300).
+3.  **Run Script:** Execute the script from the MATLAB command window or editor (e.g., `>> ML_Randomised`).
+    * The script will print progress for each cross-validation fold (`Iteration: X of Y`) and permutation step (`Permutation: X of Y`).
+    * Runtime can be significant, especially with high `numPermutations` and `ModelIt`. Using the Parallel Computing Toolbox (`UseParallel`, true) is recommended if available.
+
+## Output Description
+
+1.  **Command Window:**
+    * Displays progress indicators during execution.
+    * Prints the total number of folds that failed to meet the R² criteria (`Total failures: X out of Y iterations.`).
+    * Prints the overall mean performance metrics (MSE, MAE, R²) calculated across all folds and data splits (All, Training, Test).
+    * Prints confirmation message when results are saved (`Results successfully saved to ...`).
+    * *(Optional)* Prints a message confirming workspace cleanup if the `clearvars` command is included at the end.
+
+2.  **MATLAB Figures:** Several figure windows are generated:
+    * **Feature Importance and P-values:** A single figure with 5 subplots (arranged 2x3) showing importance coefficients from half/all training data, plus PST, PIT (R² difference based), and average p-values, sorted appropriately.
+    * **Primary Feature Importance:** A separate figure showing the main average feature importance coefficients (mean across cross-validation folds) with error bars, sorted ascending by absolute importance.
+    * **Prediction Errors per Margin:** A box plot (`daboxplot` or standard `boxplot`) showing the distribution of prediction errors (Predicted - Actual, normalized) for each of the 16 margins, with margin names labeled on the x-axis.
+    * **Partial Dependence Plots:** A single figure with 7 subplots (arranged 3x3) showing the partial dependence of the predicted target variable on each of the 7 input features, including mean and standard deviation across folds.
+
+3.  **MAT File (`*_Results_*.mat`):**
+    * A `.mat` file is saved in the script's directory. The filename indicates the analysis type and the target variable predicted (e.g., `AllData_Results_Width.mat`, `Randomised_Results_Depth.mat`, `Bootstrap_Results_PCA.mat`).
+    * This file contains a single structure variable named `resultsData`.
+    * The `resultsData` structure includes the following fields:
+        * **Execution Parameters:** `executionTimestamp`, `analysisType`, `targetVariableIndex`, `targetVariableName`, `featureNames`, `hyperparameterOptimizationIterations` (`ModelIt`), `pValuePermutations` (`numPermutations`), 	`ranRandomSubsetInsteadOfAllFolds` ('Yes' or 'No'), `TotalModels` (`End`), `FailedModels` (`failureCount`), `totalMargins` (16), `trainingMarginsPerFold` (13).
+        * `detailedImportanceMetricsTable`: A MATLAB `table` summarizing feature importance and significance metrics, sorted by descending mean importance. Columns include `FeatureName`, `MeanImportance`, `StdDevImportance`, 	`PST_PValue`, `PIT_PValue_R2`, `PIT_PValue_pvalA`, `PIT_PValue_pVal2`..
+        * Individual performance metrics (e.g., `meanR2_TestData`, `meanMSE_TrainData`, `meanMAE_AllData`)
+        * `predictionErrorsPerMargin`: Matrix of prediction errors (Rows: Models, Columns: Margins).
+        * `partialDependenceData`: Structure containing PDP data arrays (e.g., `sedimentSupply_Y`, `sedimentSupply_X`).
+        * `kernelFunctionsUsed`: Cell array of kernel functions identified during optimisation for each fold.
+        * `epsilonAndBoxConstraints`: Matrix of Epsilon and Box Constraint values (`AF2`) identified for each fold.
+    
+
+## Citation
+
+If you use these scripts or the associated data in your research, please cite the original paper:
+
+Nordsvan, A. R., Bauer, K. W., Colleps, C. L., Khan, N. S., Mitchell, R. N., & McKenzie, N. R. (in review). Unraveling the complex drivers of continental shelf evolution using machine learning. 
+## Contact
+
+Adam R. Nordsvan - **[adam.nordsvan@gmail.com]**
+
